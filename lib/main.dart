@@ -28,24 +28,15 @@ class LittleDetectiveApp extends StatelessWidget {
 }
 
 ThemeData _buildTheme(Brightness brightness) {
-  final colorScheme = ColorScheme.fromSeed(
-    seedColor: _accentColor,
-    brightness: brightness,
-  );
+  final colorScheme = ColorScheme.fromSeed(seedColor: _accentColor, brightness: brightness);
 
   return ThemeData(
     colorScheme: colorScheme,
     scaffoldBackgroundColor: colorScheme.surface,
-    appBarTheme: AppBarTheme(
-      backgroundColor: colorScheme.surface,
-      foregroundColor: colorScheme.onSurface,
-      elevation: 0,
-    ),
+    appBarTheme: AppBarTheme(backgroundColor: colorScheme.surface, foregroundColor: colorScheme.onSurface, elevation: 0),
     navigationBarTheme: NavigationBarThemeData(
       indicatorColor: colorScheme.primaryContainer,
-      labelTextStyle: WidgetStatePropertyAll(
-        TextStyle(color: colorScheme.onSurface),
-      ),
+      labelTextStyle: WidgetStatePropertyAll(TextStyle(color: colorScheme.onSurface)),
     ),
     useMaterial3: false,
   );
@@ -66,9 +57,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   void _selectTab(AppTab tab) {
     setState(() {
-      if (tab == AppTab.qr &&
-          _selectedTab == AppTab.qr &&
-          _scannedText != null) {
+      if (tab == AppTab.qr && _selectedTab == AppTab.qr && _scannedText != null) {
         _scannedText = null;
       }
       _selectedTab = tab;
@@ -80,11 +69,7 @@ class _HomeScreenState extends State<HomeScreen> {
       return;
     }
 
-    final value = capture.barcodes
-        .map((barcode) => barcode.rawValue)
-        .whereType<String>()
-        .where((text) => text.trim().isNotEmpty)
-        .firstOrNull;
+    final value = capture.barcodes.map((barcode) => barcode.rawValue).whereType<String>().where((text) => text.trim().isNotEmpty).firstOrNull;
 
     if (value == null) {
       return;
@@ -101,19 +86,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Image.asset(
-              'assets/app_icon.png',
-              width: 28,
-              height: 28,
-              excludeFromSemantics: true,
-            ),
-            const SizedBox(width: 8),
-            const Text('Little Detective'),
-          ],
-        ),
+        title: Row(mainAxisSize: MainAxisSize.min, children: [Image.asset('assets/app_icon.png', width: 48, height: 48, excludeFromSemantics: true)]),
         centerTitle: true,
       ),
       body: SafeArea(
@@ -122,11 +95,7 @@ class _HomeScreenState extends State<HomeScreen> {
           child: AnimatedSwitcher(
             duration: const Duration(milliseconds: 250),
             child: _selectedTab == AppTab.qr
-                ? QrView(
-                    key: const ValueKey('qr-view'),
-                    scannedText: _scannedText,
-                    onDetect: _handleBarcode,
-                  )
+                ? QrView(key: const ValueKey('qr-view'), scannedText: _scannedText, onDetect: _handleBarcode)
                 : const CompassView(key: ValueKey('compass-view')),
           ),
         ),
@@ -138,16 +107,8 @@ class _HomeScreenState extends State<HomeScreen> {
           _selectTab(index == 0 ? AppTab.qr : AppTab.compass);
         },
         destinations: const [
-          NavigationDestination(
-            icon: Icon(Icons.qr_code_scanner),
-            selectedIcon: Icon(Icons.qr_code_2),
-            label: '',
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.explore_outlined),
-            selectedIcon: Icon(Icons.explore),
-            label: '',
-          ),
+          NavigationDestination(icon: Icon(Icons.qr_code_scanner), selectedIcon: Icon(Icons.qr_code_2), label: 'QR-Code'),
+          NavigationDestination(icon: Icon(Icons.explore_outlined), selectedIcon: Icon(Icons.explore), label: 'Compass'),
         ],
       ),
     );
@@ -199,24 +160,14 @@ class ScannedTextView extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            'Scanned Text',
-            style: Theme.of(
-              context,
-            ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w700),
-          ),
+          Text('Text', style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w700)),
           const SizedBox(height: 12),
           Expanded(
             child: Scrollbar(
               thumbVisibility: true,
               child: SingleChildScrollView(
                 padding: const EdgeInsets.only(right: 12),
-                child: SelectableText(
-                  text,
-                  style: Theme.of(
-                    context,
-                  ).textTheme.titleMedium?.copyWith(height: 1.45),
-                ),
+                child: SelectableText(text, style: Theme.of(context).textTheme.titleMedium?.copyWith(height: 1.45)),
               ),
             ),
           ),
@@ -255,10 +206,7 @@ class CompassView extends StatefulWidget {
 
 class _CompassViewState extends State<CompassView> {
   final Stream<Position> _positionStream = Geolocator.getPositionStream(
-    locationSettings: const LocationSettings(
-      accuracy: LocationAccuracy.bestForNavigation,
-      distanceFilter: 0,
-    ),
+    locationSettings: const LocationSettings(accuracy: LocationAccuracy.bestForNavigation, distanceFilter: 0),
   );
 
   bool _locationInitialized = false;
@@ -286,9 +234,7 @@ class _CompassViewState extends State<CompassView> {
   Future<_LocationSetupResult> _prepareLocation() async {
     final isEnabled = await Geolocator.isLocationServiceEnabled();
     if (!isEnabled) {
-      return const _LocationSetupResult(
-        errorMessage: 'Location services are disabled.',
-      );
+      return const _LocationSetupResult(errorMessage: 'Location services are disabled.');
     }
 
     var permission = await Geolocator.checkPermission();
@@ -297,15 +243,11 @@ class _CompassViewState extends State<CompassView> {
     }
 
     if (permission == LocationPermission.denied) {
-      return const _LocationSetupResult(
-        errorMessage: 'Location permission denied.',
-      );
+      return const _LocationSetupResult(errorMessage: 'Location permission denied.');
     }
 
     if (permission == LocationPermission.deniedForever) {
-      return const _LocationSetupResult(
-        errorMessage: 'Location permission permanently denied.',
-      );
+      return const _LocationSetupResult(errorMessage: 'Location permission permanently denied.');
     }
 
     return const _LocationSetupResult();
@@ -319,44 +261,27 @@ class _CompassViewState extends State<CompassView> {
         final heading = snapshot.data?.heading;
 
         if (heading == null) {
-          return const Center(
-            child: Text(
-              'No compass sensor found.',
-              textAlign: TextAlign.center,
-            ),
-          );
+          return const Center(child: Text('No compass sensor found.', textAlign: TextAlign.center));
         }
 
         if (!_locationInitialized) {
           return Center(
-            child: CompassRose(
-              heading: heading,
-              locationStatus: 'Detecting location...',
-            ),
+            child: CompassRose(heading: heading, locationStatus: 'Detecting location...'),
           );
         }
 
         if (!_locationReady) {
           return Center(
-            child: CompassRose(
-              heading: heading,
-              locationStatus: _locationError,
-            ),
+            child: CompassRose(heading: heading, locationStatus: _locationError),
           );
         }
 
         return StreamBuilder<Position>(
           stream: _positionStream,
           builder: (context, positionSnapshot) {
-            final locationStatus = positionSnapshot.hasError
-                ? 'Unable to read location.'
-                : null;
+            final locationStatus = positionSnapshot.hasError ? 'Unable to read location.' : null;
             return Center(
-              child: CompassRose(
-                heading: heading,
-                position: positionSnapshot.data,
-                locationStatus: locationStatus,
-              ),
+              child: CompassRose(heading: heading, position: positionSnapshot.data, locationStatus: locationStatus),
             );
           },
         );
@@ -372,12 +297,7 @@ class _LocationSetupResult {
 }
 
 class CompassRose extends StatelessWidget {
-  const CompassRose({
-    required this.heading,
-    this.position,
-    this.locationStatus,
-    super.key,
-  });
+  const CompassRose({required this.heading, this.position, this.locationStatus, super.key});
 
   final double heading;
   final Position? position;
@@ -397,28 +317,19 @@ class CompassRose extends StatelessWidget {
               angle: rotation,
               child: CustomPaint(
                 size: const Size.square(320),
-                painter: _CompassRosePainter(
-                  colorScheme: Theme.of(context).colorScheme,
-                ),
+                painter: _CompassRosePainter(colorScheme: Theme.of(context).colorScheme),
               ),
             ),
           ),
         ),
         const SizedBox(height: 16),
-        Text(
-          '${heading.round()}\u00B0',
-          style: Theme.of(
-            context,
-          ).textTheme.headlineMedium?.copyWith(fontWeight: FontWeight.w700),
-        ),
+        Text('${heading.round()}\u00B0', style: Theme.of(context).textTheme.headlineMedium?.copyWith(fontWeight: FontWeight.w700)),
         const SizedBox(height: 8),
         if (locationStatus != null)
           Text(
             locationStatus!,
             textAlign: TextAlign.center,
-            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-              color: Theme.of(context).colorScheme.error,
-            ),
+            style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: Theme.of(context).colorScheme.error),
           )
         else if (position == null)
           Text('Locating...', style: Theme.of(context).textTheme.bodyMedium)
@@ -430,10 +341,7 @@ class CompassRose extends StatelessWidget {
                 style: Theme.of(context).textTheme.bodyMedium,
               ),
               const SizedBox(height: 2),
-              Text(
-                'Alt ${position!.altitude.toStringAsFixed(1)} m MSL',
-                style: Theme.of(context).textTheme.bodyMedium,
-              ),
+              Text('Alt ${position!.altitude.toStringAsFixed(1)} m MSL', style: Theme.of(context).textTheme.bodyMedium),
             ],
           ),
       ],
@@ -479,13 +387,7 @@ class _CompassRosePainter extends CustomPainter {
     _drawLabels(canvas, size, center, radius);
   }
 
-  void _drawNeedle(
-    Canvas canvas,
-    Offset center,
-    double radius,
-    Paint northPaint,
-    Paint southPaint,
-  ) {
+  void _drawNeedle(Canvas canvas, Offset center, double radius, Paint northPaint, Paint southPaint) {
     final northPath = Path()
       ..moveTo(center.dx, center.dy - radius + 78)
       ..lineTo(center.dx - 18, center.dy)
@@ -508,24 +410,14 @@ class _CompassRosePainter extends CustomPainter {
 
     for (final entry in labels.entries) {
       final angle = entry.value * math.pi / 180;
-      final position =
-          center + Offset(math.cos(angle), math.sin(angle)) * (radius - 45);
-      final style = TextStyle(
-        color: entry.key == 'N'
-            ? const Color(0xFFE53935)
-            : colorScheme.onSurface,
-        fontSize: 34,
-        fontWeight: FontWeight.w800,
-      );
+      final position = center + Offset(math.cos(angle), math.sin(angle)) * (radius - 45);
+      final style = TextStyle(color: entry.key == 'N' ? const Color(0xFFE53935) : colorScheme.onSurface, fontSize: 34, fontWeight: FontWeight.w800);
       final painter = TextPainter(
         text: TextSpan(text: entry.key, style: style),
         textDirection: TextDirection.ltr,
       )..layout();
 
-      painter.paint(
-        canvas,
-        position - Offset(painter.width / 2, painter.height / 2),
-      );
+      painter.paint(canvas, position - Offset(painter.width / 2, painter.height / 2));
     }
   }
 
