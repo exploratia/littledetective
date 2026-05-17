@@ -37,6 +37,7 @@ dependencies:
   flutter_compass: ^0.8.1
   geolocator: ^14.0.2
   mobile_scanner: ^7.2.0
+  url_launcher: ^6.3.2
 
 dev_dependencies:
   flutter_test:
