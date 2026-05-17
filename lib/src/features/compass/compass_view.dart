@@ -148,7 +148,7 @@ class CompassRose extends StatelessWidget {
                 style: Theme.of(context).textTheme.bodyMedium,
               ),
               const SizedBox(height: 2),
-              Text('Alt ${position!.altitude.toStringAsFixed(1)} m MSL', style: Theme.of(context).textTheme.bodyMedium),
+              Text('Alt ${position!.altitude.toStringAsFixed(1)} m', style: Theme.of(context).textTheme.bodyMedium),
             ],
           ),
       ],

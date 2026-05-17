@@ -2,17 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 
 class QrView extends StatelessWidget {
-  const QrView({required this.scannedText, required this.onDetect, super.key});
+  const QrView({required this.onDetect, super.key});
 
-  final String? scannedText;
   final void Function(BarcodeCapture capture) onDetect;
 
   @override
   Widget build(BuildContext context) {
-    if (scannedText != null) {
-      return ScannedTextView(text: scannedText!);
-    }
-
     return ClipRRect(
       borderRadius: BorderRadius.circular(8),
       child: Stack(

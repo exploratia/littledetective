@@ -5,7 +5,7 @@ import '../features/compass/compass_view.dart';
 import '../features/qr/qr_view.dart';
 import 'administration_screen.dart';
 
-enum AppTab { qr, compass }
+enum AppTab { qr, compass, text }
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -20,20 +20,11 @@ class _HomeScreenState extends State<HomeScreen> {
 
   void _selectTab(AppTab tab) {
     setState(() {
-      if (tab == AppTab.qr &&
-          _selectedTab == AppTab.qr &&
-          _scannedText != null) {
-        _scannedText = null;
-      }
       _selectedTab = tab;
     });
   }
 
   void _handleBarcode(BarcodeCapture capture) {
-    if (_scannedText != null) {
-      return;
-    }
-
     final value = capture.barcodes
         .map((barcode) => barcode.rawValue)
         .whereType<String>()
@@ -46,6 +37,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
     setState(() {
       _scannedText = value;
+      _selectedTab = AppTab.text;
     });
   }
 
@@ -57,7 +49,11 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final selectedIndex = _selectedTab == AppTab.qr ? 0 : 1;
+    final selectedIndex = switch (_selectedTab) {
+      AppTab.qr => 0,
+      AppTab.compass => 1,
+      AppTab.text => 2,
+    };
 
     return Scaffold(
       appBar: AppBar(
@@ -84,13 +80,22 @@ class _HomeScreenState extends State<HomeScreen> {
           padding: const EdgeInsets.all(16),
           child: AnimatedSwitcher(
             duration: const Duration(milliseconds: 250),
-            child: _selectedTab == AppTab.qr
-                ? QrView(
-                    key: const ValueKey('qr-view'),
-                    scannedText: _scannedText,
-                    onDetect: _handleBarcode,
-                  )
-                : const CompassView(key: ValueKey('compass-view')),
+            child: switch (_selectedTab) {
+              AppTab.qr => QrView(
+                key: const ValueKey('qr-view'),
+                onDetect: _handleBarcode,
+              ),
+              AppTab.compass => const CompassView(
+                key: ValueKey('compass-view'),
+              ),
+              AppTab.text =>
+                _scannedText == null
+                    ? const _EmptyTextView(key: ValueKey('empty-text-view'))
+                    : ScannedTextView(
+                        key: const ValueKey('scanned-text-view'),
+                        text: _scannedText!,
+                      ),
+            },
           ),
         ),
       ),
@@ -98,7 +103,11 @@ class _HomeScreenState extends State<HomeScreen> {
         selectedIndex: selectedIndex,
         labelBehavior: NavigationDestinationLabelBehavior.alwaysHide,
         onDestinationSelected: (index) {
-          _selectTab(index == 0 ? AppTab.qr : AppTab.compass);
+          _selectTab(switch (index) {
+            0 => AppTab.qr,
+            1 => AppTab.compass,
+            _ => AppTab.text,
+          });
         },
         destinations: const [
           NavigationDestination(
@@ -111,7 +120,29 @@ class _HomeScreenState extends State<HomeScreen> {
             selectedIcon: Icon(Icons.explore, size: 34),
             label: 'Compass',
           ),
+          NavigationDestination(
+            icon: Icon(Icons.text_snippet_outlined, size: 30),
+            selectedIcon: Icon(Icons.text_snippet, size: 34),
+            label: 'Text',
+          ),
         ],
+      ),
+    );
+  }
+}
+
+class _EmptyTextView extends StatelessWidget {
+  const _EmptyTextView({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    final textTheme = Theme.of(context).textTheme;
+
+    return Center(
+      child: Text(
+        '🫣',
+        textAlign: TextAlign.center,
+        style: textTheme.titleLarge,
       ),
     );
   }
