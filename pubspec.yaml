@@ -37,6 +37,8 @@ dependencies:
   flutter_compass: ^0.8.1
   geolocator: ^14.0.2
   mobile_scanner: ^7.2.0
+  package_info_plus: ^9.0.1
+  simple_html_css: ^5.0.0
   url_launcher: ^6.3.2
 
 dev_dependencies:
@@ -62,6 +64,7 @@ flutter:
   uses-material-design: true
   assets:
     - assets/app_icon.png
+    - assets/infos/
 
   # To add assets to your application, add an assets section, like this:
   # assets:

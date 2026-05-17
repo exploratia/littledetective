@@ -10,7 +10,7 @@ class AppTheme {
       seedColor: _accentColor,
       brightness: brightness,
     );
-    final barBackgroundColor = colorScheme.surface;
+    final barBackgroundColor = colorScheme.surfaceContainerLow;
 
     return ThemeData(
       colorScheme: colorScheme,

@@ -1,8 +1,22 @@
 import 'package:flutter/material.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-class AdministrationScreen extends StatelessWidget {
+import 'info_document_screen.dart';
+
+class AdministrationScreen extends StatefulWidget {
   const AdministrationScreen({super.key});
+
+  @override
+  State<AdministrationScreen> createState() => _AdministrationScreenState();
+}
+
+class _AdministrationScreenState extends State<AdministrationScreen> {
+  static const _appName = 'Little Detective';
+  static const _legalNoticeAsset = 'assets/infos/legal_notice.html';
+  static const _privacyPolicyAsset = 'assets/infos/privacy_policy.html';
+  static const _disclaimerAsset = 'assets/infos/disclaimer.html';
+  static const _eulaAsset = 'assets/infos/eula.html';
 
   static final Uri _buyMeACoffeeUri = Uri.parse('https://coff.ee/exploratia');
   static final Uri _littleDetectiveUri = Uri.parse(
@@ -12,6 +26,40 @@ class AdministrationScreen extends StatelessWidget {
   static final Uri _issueUri = Uri.parse(
     'https://github.com/exploratia/littledetective/issues',
   );
+
+  void _openInfoDocument(
+    BuildContext context, {
+    required String title,
+    required String assetPath,
+  }) {
+    Navigator.of(context).push(
+      MaterialPageRoute<void>(
+        builder: (_) => InfoDocumentScreen(title: title, assetPath: assetPath),
+      ),
+    );
+  }
+
+  Future<void> _showVersionDialog(BuildContext context) async {
+    final packageInfo = await PackageInfo.fromPlatform();
+    final version = packageInfo.buildNumber.trim().isEmpty
+        ? packageInfo.version
+        : '${packageInfo.version}+${packageInfo.buildNumber}';
+    if (!context.mounted) {
+      return;
+    }
+    showAboutDialog(
+      context: context,
+      applicationName: _appName,
+      applicationVersion: version,
+      applicationIcon: Image.asset(
+        'assets/app_icon.png',
+        width: 64,
+        height: 64,
+        excludeFromSemantics: true,
+      ),
+      applicationLegalese: '${DateTime.now().year} \u00A9 Christian Adler',
+    );
+  }
 
   Future<void> _openLink(BuildContext context, Uri uri) async {
     final launched = await launchUrl(uri, mode: LaunchMode.externalApplication);
@@ -55,7 +103,7 @@ class AdministrationScreen extends StatelessWidget {
             ),
             const SizedBox(height: 16),
             _AdministrationCard(
-              title: 'Little Detective',
+              title: _appName,
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -68,7 +116,56 @@ class AdministrationScreen extends StatelessWidget {
                     runSpacing: 8,
                     children: [
                       OutlinedButton.icon(
-                        onPressed: () => _openLink(context, _littleDetectiveUri),
+                        onPressed: () => _showVersionDialog(context),
+                        icon: const Icon(Icons.info_outline),
+                        label: const Text('Version'),
+                      ),
+                      OutlinedButton.icon(
+                        onPressed: () => _openInfoDocument(
+                          context,
+                          title: 'Legal Notice',
+                          assetPath: _legalNoticeAsset,
+                        ),
+                        icon: const Icon(Icons.gavel_outlined),
+                        label: const Text('Legal Notice'),
+                      ),
+                      OutlinedButton.icon(
+                        onPressed: () => _openInfoDocument(
+                          context,
+                          title: 'Privacy Policy',
+                          assetPath: _privacyPolicyAsset,
+                        ),
+                        icon: const Icon(Icons.privacy_tip_outlined),
+                        label: const Text('Privacy Policy'),
+                      ),
+                      OutlinedButton.icon(
+                        onPressed: () => _openInfoDocument(
+                          context,
+                          title: 'Disclaimer',
+                          assetPath: _disclaimerAsset,
+                        ),
+                        icon: const Icon(Icons.warning_amber_outlined),
+                        label: const Text('Disclaimer'),
+                      ),
+                      OutlinedButton.icon(
+                        onPressed: () => _openInfoDocument(
+                          context,
+                          title: 'EULA',
+                          assetPath: _eulaAsset,
+                        ),
+                        icon: const Icon(Icons.description_outlined),
+                        label: const Text('EULA'),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 12),
+                  Wrap(
+                    spacing: 8,
+                    runSpacing: 8,
+                    children: [
+                      OutlinedButton.icon(
+                        onPressed: () =>
+                            _openLink(context, _littleDetectiveUri),
                         icon: const Icon(Icons.open_in_new),
                         label: const Text('Little Detective on GitHub'),
                       ),
@@ -79,6 +176,10 @@ class AdministrationScreen extends StatelessWidget {
                       ),
                     ],
                   ),
+                  const SizedBox(height: 12),
+                  const Divider(height: 1),
+                  const SizedBox(height: 12),
+                  Text('${DateTime.now().year} \u00A9 Christian Adler'),
                 ],
               ),
             ),

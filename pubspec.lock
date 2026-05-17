@@ -281,7 +281,7 @@ packages:
     source: hosted
     version: "7.2.0"
   package_info_plus:
-    dependency: transitive
+    dependency: "direct main"
     description:
       name: package_info_plus
       sha256: "468c26b4254ab01979fa5e4a98cb343ea3631b9acee6f21028997419a80e1a20"
@@ -320,6 +320,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.1.8"
+  simple_html_css:
+    dependency: "direct main"
+    description:
+      name: simple_html_css
+      sha256: "93bc59c0565e943abf6674e932f3f8b77bf87290a4f6f3f364c05fad26feb9d7"
+      url: "https://pub.dev"
+    source: hosted
+    version: "5.0.0"
   sky_engine:
     dependency: transitive
     description: flutter

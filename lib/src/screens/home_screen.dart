@@ -69,10 +69,13 @@ class _HomeScreenState extends State<HomeScreen> {
           excludeFromSemantics: true,
         ),
         actions: [
-          IconButton(
-            onPressed: _openAdministration,
-            icon: const Icon(Icons.info_outline),
-            tooltip: 'Administration',
+          Padding(
+            padding: const EdgeInsets.only(right: 8),
+            child: IconButton(
+              onPressed: _openAdministration,
+              icon: const Icon(Icons.info_outline),
+              tooltip: 'Administration',
+            ),
           ),
         ],
       ),
