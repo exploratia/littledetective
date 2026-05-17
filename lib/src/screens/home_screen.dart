@@ -102,13 +102,13 @@ class _HomeScreenState extends State<HomeScreen> {
         },
         destinations: const [
           NavigationDestination(
-            icon: Icon(Icons.qr_code_scanner),
-            selectedIcon: Icon(Icons.qr_code_2),
+            icon: Icon(Icons.qr_code_scanner, size: 30),
+            selectedIcon: Icon(Icons.qr_code_2, size: 34),
             label: 'QR-Code',
           ),
           NavigationDestination(
-            icon: Icon(Icons.explore_outlined),
-            selectedIcon: Icon(Icons.explore),
+            icon: Icon(Icons.explore_outlined, size: 30),
+            selectedIcon: Icon(Icons.explore, size: 34),
             label: 'Compass',
           ),
         ],
