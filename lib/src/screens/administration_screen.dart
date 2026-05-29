@@ -19,19 +19,13 @@ class _AdministrationScreenState extends State<AdministrationScreen> {
   static const _eulaAsset = 'assets/infos/eula.html';
 
   static final Uri _buyMeACoffeeUri = Uri.parse('https://coff.ee/exploratia');
-  static final Uri _littleDetectiveUri = Uri.parse(
-    'https://github.com/exploratia/littledetective',
-  );
+  static final Uri _githubUri = Uri.parse('https://github.com/exploratia/littledetective');
+  static final Uri _githubIssueUri = Uri.parse('https://github.com/exploratia/littledetective/issues');
   static final Uri _exploratiaUri = Uri.parse('https://www.exploratia.de');
-  static final Uri _issueUri = Uri.parse(
-    'https://github.com/exploratia/littledetective/issues',
-  );
+  static final Uri _exploratiaLittleDetectiveUri = Uri.parse('https://www.exploratia.de/littledetective.php');
+  static final Uri _playstoreUri = Uri.parse('https://play.google.com/store/apps/details?id=de.exploratia.littledetective');
 
-  void _openInfoDocument(
-    BuildContext context, {
-    required String title,
-    required String assetPath,
-  }) {
+  void _openInfoDocument(BuildContext context, {required String title, required String assetPath}) {
     Navigator.of(context).push(
       MaterialPageRoute<void>(
         builder: (_) => InfoDocumentScreen(title: title, assetPath: assetPath),
@@ -41,9 +35,7 @@ class _AdministrationScreenState extends State<AdministrationScreen> {
 
   Future<void> _showVersionDialog(BuildContext context) async {
     final packageInfo = await PackageInfo.fromPlatform();
-    final version = packageInfo.buildNumber.trim().isEmpty
-        ? packageInfo.version
-        : '${packageInfo.version}+${packageInfo.buildNumber}';
+    final version = packageInfo.buildNumber.trim().isEmpty ? packageInfo.version : '${packageInfo.version}+${packageInfo.buildNumber}';
     if (!context.mounted) {
       return;
     }
@@ -51,12 +43,7 @@ class _AdministrationScreenState extends State<AdministrationScreen> {
       context: context,
       applicationName: _appName,
       applicationVersion: version,
-      applicationIcon: Image.asset(
-        'assets/app_icon.png',
-        width: 64,
-        height: 64,
-        excludeFromSemantics: true,
-      ),
+      applicationIcon: Image.asset('assets/app_icon.png', width: 64, height: 64, excludeFromSemantics: true),
       applicationLegalese: '${DateTime.now().year} \u00A9 Christian Adler',
     );
   }
@@ -64,9 +51,7 @@ class _AdministrationScreenState extends State<AdministrationScreen> {
   Future<void> _openLink(BuildContext context, Uri uri) async {
     final launched = await launchUrl(uri, mode: LaunchMode.externalApplication);
     if (!launched && context.mounted) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('Could not open $uri')));
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Could not open $uri')));
     }
   }
 
@@ -83,18 +68,22 @@ class _AdministrationScreenState extends State<AdministrationScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text(
-                    'Maintaining and improving this app takes a lot of free time. Any support is appreciated.',
-                  ),
+                  const Text('Maintaining and improving this app takes a lot of free time. Any support is appreciated.'),
                   const SizedBox(height: 12),
-                  OutlinedButton.icon(
+                  TextButton.icon(
                     onPressed: () => _openLink(context, _buyMeACoffeeUri),
                     icon: const Icon(Icons.local_cafe_outlined),
                     label: const Text('Buy me a coffee'),
                   ),
                   const SizedBox(height: 8),
                   TextButton.icon(
-                    onPressed: () => _openLink(context, _issueUri),
+                    onPressed: () => _openLink(context, _playstoreUri),
+                    icon: const Icon(Icons.rate_review_outlined),
+                    label: const Text('Rate/Feedback in Google Play'),
+                  ),
+                  const SizedBox(height: 8),
+                  TextButton.icon(
+                    onPressed: () => _openLink(context, _githubIssueUri),
                     icon: const Icon(Icons.bug_report_outlined),
                     label: const Text('Report a bug on GitHub'),
                   ),
@@ -107,52 +96,30 @@ class _AdministrationScreenState extends State<AdministrationScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text(
-                    'Little Detective is a simple app with QR scanner and compass for kids.',
-                  ),
+                  const Text('Little Detective is a simple app with QR scanner and compass for kids.'),
                   const SizedBox(height: 12),
                   Wrap(
                     spacing: 8,
                     runSpacing: 8,
                     children: [
+                      OutlinedButton.icon(onPressed: () => _showVersionDialog(context), icon: const Icon(Icons.info_outline), label: const Text('Version')),
                       OutlinedButton.icon(
-                        onPressed: () => _showVersionDialog(context),
-                        icon: const Icon(Icons.info_outline),
-                        label: const Text('Version'),
-                      ),
-                      OutlinedButton.icon(
-                        onPressed: () => _openInfoDocument(
-                          context,
-                          title: 'Legal Notice',
-                          assetPath: _legalNoticeAsset,
-                        ),
+                        onPressed: () => _openInfoDocument(context, title: 'Legal Notice', assetPath: _legalNoticeAsset),
                         icon: const Icon(Icons.gavel_outlined),
                         label: const Text('Legal Notice'),
                       ),
                       OutlinedButton.icon(
-                        onPressed: () => _openInfoDocument(
-                          context,
-                          title: 'Privacy Policy',
-                          assetPath: _privacyPolicyAsset,
-                        ),
+                        onPressed: () => _openInfoDocument(context, title: 'Privacy Policy', assetPath: _privacyPolicyAsset),
                         icon: const Icon(Icons.privacy_tip_outlined),
                         label: const Text('Privacy Policy'),
                       ),
                       OutlinedButton.icon(
-                        onPressed: () => _openInfoDocument(
-                          context,
-                          title: 'Disclaimer',
-                          assetPath: _disclaimerAsset,
-                        ),
+                        onPressed: () => _openInfoDocument(context, title: 'Disclaimer', assetPath: _disclaimerAsset),
                         icon: const Icon(Icons.warning_amber_outlined),
                         label: const Text('Disclaimer'),
                       ),
                       OutlinedButton.icon(
-                        onPressed: () => _openInfoDocument(
-                          context,
-                          title: 'EULA',
-                          assetPath: _eulaAsset,
-                        ),
+                        onPressed: () => _openInfoDocument(context, title: 'EULA', assetPath: _eulaAsset),
                         icon: const Icon(Icons.description_outlined),
                         label: const Text('EULA'),
                       ),
@@ -164,8 +131,7 @@ class _AdministrationScreenState extends State<AdministrationScreen> {
                     runSpacing: 8,
                     children: [
                       OutlinedButton.icon(
-                        onPressed: () =>
-                            _openLink(context, _littleDetectiveUri),
+                        onPressed: () => _openLink(context, _githubUri),
                         icon: const Icon(Icons.open_in_new),
                         label: const Text('Little Detective on GitHub'),
                       ),
@@ -173,6 +139,11 @@ class _AdministrationScreenState extends State<AdministrationScreen> {
                         onPressed: () => _openLink(context, _exploratiaUri),
                         icon: const Icon(Icons.language),
                         label: const Text('Exploratia'),
+                      ),
+                      OutlinedButton.icon(
+                        onPressed: () => _openLink(context, _exploratiaLittleDetectiveUri),
+                        icon: const Icon(Icons.language),
+                        label: const Text('Little Detective on Exploratia'),
                       ),
                     ],
                   ),
@@ -209,12 +180,7 @@ class _AdministrationCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            title,
-            style: Theme.of(
-              context,
-            ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w700),
-          ),
+          Text(title, style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w700)),
           const SizedBox(height: 12),
           child,
         ],
