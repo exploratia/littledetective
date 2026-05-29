@@ -45,9 +45,7 @@ class _HomeScreenState extends State<HomeScreen> {
   Future<void> _loadPersistedState() async {
     final preferences = await SharedPreferences.getInstance();
     final packageInfo = await PackageInfo.fromPlatform();
-    final currentVersion = packageInfo.buildNumber.trim().isEmpty
-        ? packageInfo.version
-        : '${packageInfo.version}+${packageInfo.buildNumber}';
+    final currentVersion = packageInfo.buildNumber.trim().isEmpty ? packageInfo.version : '${packageInfo.version}+${packageInfo.buildNumber}';
     final storedVersion = preferences.getString(_storedVersionKey);
     final shouldShowInfoView = storedVersion == null;
 
@@ -88,11 +86,7 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   void _handleBarcode(BarcodeCapture capture) {
-    final value = capture.barcodes
-        .map((barcode) => barcode.rawValue)
-        .whereType<String>()
-        .where((text) => text.trim().isNotEmpty)
-        .firstOrNull;
+    final value = capture.barcodes.map((barcode) => barcode.rawValue).whereType<String>().where((text) => text.trim().isNotEmpty).firstOrNull;
 
     if (value == null) {
       return;
@@ -108,15 +102,11 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   void _openAdministration() {
-    Navigator.of(context).push(
-      MaterialPageRoute<void>(builder: (_) => const AdministrationScreen()),
-    );
+    Navigator.of(context).push(MaterialPageRoute<void>(builder: (_) => const AdministrationScreen()));
   }
 
   void _openInfoView() {
-    Navigator.of(context).push(
-      MaterialPageRoute<void>(builder: (_) => const AppInfoScreen()),
-    );
+    Navigator.of(context).push(MaterialPageRoute<void>(builder: (_) => const AppInfoScreen()));
   }
 
   void _handleBackNavigation() {
@@ -145,12 +135,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
     ScaffoldMessenger.of(context)
       ..hideCurrentSnackBar()
-      ..showSnackBar(
-        const SnackBar(
-          content: Text('Press again to exit'),
-          duration: _exitHintDuration,
-        ),
-      );
+      ..showSnackBar(const SnackBar(content: Text('Press again to exit'), duration: _exitHintDuration));
   }
 
   @override
@@ -171,28 +156,15 @@ class _HomeScreenState extends State<HomeScreen> {
       child: Scaffold(
         appBar: AppBar(
           centerTitle: false,
-          title: Image.asset(
-            'assets/app_icon.png',
-            width: 48,
-            height: 48,
-            excludeFromSemantics: true,
-          ),
+          title: Image.asset('assets/app_icon.png', width: 48, height: 48, excludeFromSemantics: true),
           actions: [
             Padding(
               padding: const EdgeInsets.only(right: 8),
-              child: IconButton(
-                onPressed: _openInfoView,
-                icon: const Icon(Icons.help_outline),
-                tooltip: 'Info',
-              ),
+              child: IconButton(onPressed: _openInfoView, icon: const Icon(Icons.help_outline), tooltip: 'How to'),
             ),
             Padding(
               padding: const EdgeInsets.only(right: 8),
-              child: IconButton(
-                onPressed: _openAdministration,
-                icon: const Icon(Icons.info_outline),
-                tooltip: 'Administration',
-              ),
+              child: IconButton(onPressed: _openAdministration, icon: const Icon(Icons.info_outline), tooltip: 'Administration'),
             ),
           ],
         ),
@@ -202,20 +174,12 @@ class _HomeScreenState extends State<HomeScreen> {
             child: AnimatedSwitcher(
               duration: const Duration(milliseconds: 250),
               child: switch (_selectedTab) {
-                AppTab.qr => QrView(
-                  key: const ValueKey('qr-view'),
-                  onDetect: _handleBarcode,
-                ),
+                AppTab.qr => QrView(key: const ValueKey('qr-view'), onDetect: _handleBarcode),
                 AppTab.text =>
                   _scannedText == null
                       ? const _EmptyTextView(key: ValueKey('empty-text-view'))
-                      : ScannedTextView(
-                          key: const ValueKey('scanned-text-view'),
-                          text: _scannedText!,
-                        ),
-                AppTab.compass => const CompassView(
-                  key: ValueKey('compass-view'),
-                ),
+                      : ScannedTextView(key: const ValueKey('scanned-text-view'), text: _scannedText!),
+                AppTab.compass => const CompassView(key: ValueKey('compass-view')),
               },
             ),
           ),
@@ -231,21 +195,9 @@ class _HomeScreenState extends State<HomeScreen> {
             });
           },
           destinations: const [
-            NavigationDestination(
-              icon: Icon(Icons.qr_code_scanner, size: 30),
-              selectedIcon: Icon(Icons.qr_code_2, size: 34),
-              label: 'QR-Code',
-            ),
-            NavigationDestination(
-              icon: Icon(Icons.text_snippet_outlined, size: 30),
-              selectedIcon: Icon(Icons.text_snippet, size: 34),
-              label: 'Text',
-            ),
-            NavigationDestination(
-              icon: Icon(Icons.explore_outlined, size: 30),
-              selectedIcon: Icon(Icons.explore, size: 34),
-              label: 'Compass',
-            ),
+            NavigationDestination(icon: Icon(Icons.qr_code_scanner, size: 30), selectedIcon: Icon(Icons.qr_code_2, size: 34), label: 'QR-Code'),
+            NavigationDestination(icon: Icon(Icons.text_snippet_outlined, size: 30), selectedIcon: Icon(Icons.text_snippet, size: 34), label: 'Text'),
+            NavigationDestination(icon: Icon(Icons.explore_outlined, size: 30), selectedIcon: Icon(Icons.explore, size: 34), label: 'Compass'),
           ],
         ),
       ),
@@ -261,11 +213,7 @@ class _EmptyTextView extends StatelessWidget {
     final textTheme = Theme.of(context).textTheme;
 
     return Center(
-      child: Text(
-        '🫣',
-        textAlign: TextAlign.center,
-        style: textTheme.titleLarge,
-      ),
+      child: Text('🫣', textAlign: TextAlign.center, style: textTheme.titleLarge),
     );
   }
 }
