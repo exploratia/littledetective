@@ -36,9 +36,9 @@ class _AppInfoScreenState extends State<AppInfoScreen> {
                   spacing: 12,
                   children: [
                     const SizedBox(height: 24),
-                    const Text('Hello Detective'),
+                    Text('Hello Detective', style: Theme.of(context).textTheme.titleMedium),
                     const SizedBox(height: 24),
-                    Center(child: Image.asset('assets/app_icon.png', width: 48, height: 48, excludeFromSemantics: true)),
+                    Center(child: Image.asset('assets/app_icon.png', width: 96, height: 96, excludeFromSemantics: true)),
                     const SizedBox(height: 24),
                     _InfoLine(icon: Icons.qr_code_scanner, text: 'Scan QR-Code'),
                     _InfoLine(icon: Icons.text_snippet_outlined, text: 'Show the latest scanned content.'),
@@ -71,12 +71,12 @@ class _InfoLine extends StatelessWidget {
     return SizedBox(
       width: double.infinity,
       child: Table(
-        columnWidths: const <int, TableColumnWidth>{0: FixedColumnWidth(36), 1: FlexColumnWidth()},
-        defaultVerticalAlignment: TableCellVerticalAlignment.top,
+        columnWidths: const <int, TableColumnWidth>{0: FixedColumnWidth(56), 1: FlexColumnWidth()},
+        defaultVerticalAlignment: TableCellVerticalAlignment.middle,
         children: [
           TableRow(
             children: [
-              Align(alignment: Alignment.topLeft, child: Icon(icon, size: 24)),
+              Align(alignment: Alignment.centerLeft, child: Icon(icon, size: 36)),
               Text(text, style: Theme.of(context).textTheme.titleMedium),
             ],
           ),

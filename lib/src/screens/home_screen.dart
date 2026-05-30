@@ -213,7 +213,7 @@ class _EmptyTextView extends StatelessWidget {
     final textTheme = Theme.of(context).textTheme;
 
     return Center(
-      child: Text('🫣', textAlign: TextAlign.center, style: textTheme.titleLarge),
+      child: Text('🫣 Scan some QR-Code.', textAlign: TextAlign.center, style: textTheme.titleLarge),
     );
   }
 }

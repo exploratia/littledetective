@@ -24,11 +24,7 @@ class _AdministrationScreenState extends State<AdministrationScreen> {
   static final Uri _exploratiaUri = Uri.parse('https://www.exploratia.de');
   static final Uri _exploratiaLittleDetectiveUri = Uri.parse('https://www.exploratia.de/littledetective.php');
   static final Uri _playstoreUri = Uri.parse('https://play.google.com/store/apps/details?id=de.exploratia.littledetective');
-  static final Uri _feedbackEmailUri = Uri(
-    scheme: 'mailto',
-    path: 'info@exploratia.de',
-    queryParameters: {'subject': 'Feedback Little Detective'},
-  );
+  static final Uri _feedbackEmailUri = Uri(scheme: 'mailto', path: 'info@exploratia.de', queryParameters: {'subject': 'Feedback Little Detective'});
 
   void _openInfoDocument(BuildContext context, {required String title, required String assetPath}) {
     Navigator.of(context).push(
@@ -72,31 +68,29 @@ class _AdministrationScreenState extends State<AdministrationScreen> {
               title: 'Support the App',
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
+                spacing: 8,
                 children: [
                   const Text('Maintaining and improving this app takes a lot of free time. Any support is appreciated.'),
-                  const SizedBox(height: 12),
+                  const SizedBox(height: 2),
                   TextButton.icon(
                     onPressed: () => _openLink(context, _buyMeACoffeeUri),
                     icon: const Icon(Icons.local_cafe_outlined),
                     label: const Text('Buy me a coffee'),
                   ),
-                  const SizedBox(height: 8),
                   TextButton.icon(
                     onPressed: () => _openLink(context, _playstoreUri),
                     icon: const Icon(Icons.rate_review_outlined),
                     label: const Text('Rate/Feedback in Google Play'),
                   ),
-                  const SizedBox(height: 8),
-                  TextButton.icon(
-                    onPressed: () => _openLink(context, _githubIssueUri),
-                    icon: const Icon(Icons.bug_report_outlined),
-                    label: const Text('Report a bug on GitHub'),
-                  ),
-                  const SizedBox(height: 8),
                   TextButton.icon(
                     onPressed: () => _openLink(context, _feedbackEmailUri),
                     icon: const Icon(Icons.mail_outline),
                     label: const Text('Send feedback by email'),
+                  ),
+                  TextButton.icon(
+                    onPressed: () => _openLink(context, _githubIssueUri),
+                    icon: const Icon(Icons.bug_report_outlined),
+                    label: const Text('Report a bug on GitHub'),
                   ),
                 ],
               ),
@@ -165,6 +159,8 @@ class _AdministrationScreenState extends State<AdministrationScreen> {
                 ],
               ),
             ),
+            const SizedBox(height: 24),
+            Center(child: Image.asset('assets/app_icon.png', width: 96, height: 96, excludeFromSemantics: true)),
           ],
         ),
       ),
