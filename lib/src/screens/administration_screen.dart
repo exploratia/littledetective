@@ -20,6 +20,7 @@ class _AdministrationScreenState extends State<AdministrationScreen> {
   static const _eulaAsset = 'assets/infos/eula.html';
 
   static final Uri _buyMeACoffeeUri = Uri.parse('https://coff.ee/exploratia');
+  static final Uri _paypalMeUri = Uri.parse('https://paypal.me/adlerchristian1');
   static final Uri _githubUri = Uri.parse('https://github.com/exploratia/littledetective');
   static final Uri _githubIssueUri = Uri.parse('https://github.com/exploratia/littledetective/issues');
   static final Uri _exploratiaUri = Uri.parse('https://www.exploratia.de');
@@ -130,6 +131,11 @@ class _AdministrationScreenState extends State<AdministrationScreen> {
                       onPressed: () => _openLink(context, _buyMeACoffeeUri),
                       icon: const Icon(Icons.local_cafe_outlined),
                       label: const Text('Buy me a coffee'),
+                    ),
+                    TextButton.icon(
+                      onPressed: () => _openLink(context, _paypalMeUri),
+                      icon: const Icon(Icons.paypal_outlined),
+                      label: const Text('Donate via PayPal'),
                     ),
                     TextButton.icon(
                       onPressed: () => _openLink(context, _playstoreUri),
