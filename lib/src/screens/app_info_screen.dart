@@ -20,37 +20,49 @@ class _AppInfoScreenState extends State<AppInfoScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: const Text('How to')),
-      body: SafeArea(
-        child: Scrollbar(
-          controller: _scrollController,
-          thumbVisibility: true,
-          child: SingleChildScrollView(
-            controller: _scrollController,
-            padding: const EdgeInsets.all(16),
-            child: Align(
-              alignment: Alignment.topCenter,
-              child: ConstrainedBox(
-                constraints: const BoxConstraints(maxWidth: 400),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  spacing: 12,
-                  children: [
-                    const SizedBox(height: 24),
-                    Text('Hello Detective', style: Theme.of(context).textTheme.titleMedium),
-                    const SizedBox(height: 24),
-                    Center(child: Image.asset('assets/app_icon.png', width: 96, height: 96, excludeFromSemantics: true)),
-                    const SizedBox(height: 24),
-                    _InfoLine(icon: Icons.qr_code_scanner, text: 'Scan QR-Code'),
-                    _InfoLine(icon: Icons.text_snippet_outlined, text: 'Show the latest scanned content.'),
-                    _InfoLine(icon: Icons.explore_outlined, text: 'Show compass for direction and geolocation.'),
-                    const SizedBox(height: 24),
-                    const Text('Stay curious ...'),
-                    const SizedBox(height: 24),
-                    Center(
-                      child: IconButton.filledTonal(onPressed: () => Navigator.of(context).pop(), icon: const Icon(Icons.close), tooltip: 'Close'),
-                    ),
-                  ],
-                ),
+      body: AppInfoContent(scrollController: _scrollController, onClose: () => Navigator.of(context).pop()),
+    );
+  }
+}
+
+class AppInfoContent extends StatelessWidget {
+  const AppInfoContent({required this.scrollController, required this.onClose, super.key});
+
+  final ScrollController scrollController;
+  final VoidCallback onClose;
+
+  @override
+  Widget build(BuildContext context) {
+    return SafeArea(
+      child: Scrollbar(
+        controller: scrollController,
+        thumbVisibility: true,
+        child: SingleChildScrollView(
+          controller: scrollController,
+          padding: const EdgeInsets.all(16),
+          child: Align(
+            alignment: Alignment.topCenter,
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 400),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                spacing: 12,
+                children: [
+                  const SizedBox(height: 24),
+                  Text('Hello Detective', style: Theme.of(context).textTheme.titleMedium),
+                  const SizedBox(height: 24),
+                  Center(child: Image.asset('assets/app_icon.png', width: 96, height: 96, excludeFromSemantics: true)),
+                  const SizedBox(height: 24),
+                  _InfoLine(icon: Icons.qr_code_scanner, text: 'Scan QR-Code'),
+                  _InfoLine(icon: Icons.text_snippet_outlined, text: 'Show the latest scanned content.'),
+                  _InfoLine(icon: Icons.explore_outlined, text: 'Show compass for direction and geolocation.'),
+                  const SizedBox(height: 24),
+                  const Text('Stay curious ...'),
+                  const SizedBox(height: 24),
+                  Center(
+                    child: IconButton.filledTonal(onPressed: onClose, icon: const Icon(Icons.close), tooltip: 'Close'),
+                  ),
+                ],
               ),
             ),
           ),

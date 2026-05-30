@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:package_info_plus/package_info_plus.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import 'info_document_screen.dart';
@@ -25,6 +26,8 @@ class _AdministrationScreenState extends State<AdministrationScreen> {
   static final Uri _exploratiaLittleDetectiveUri = Uri.parse('https://www.exploratia.de/littledetective.php');
   static final Uri _playstoreUri = Uri.parse('https://play.google.com/store/apps/details?id=de.exploratia.littledetective');
   static final Uri _feedbackEmailUri = Uri(scheme: 'mailto', path: 'info@exploratia.de', queryParameters: {'subject': 'Feedback Little Detective'});
+
+  bool _hasDeletedStoredData = false;
 
   void _openInfoDocument(BuildContext context, {required String title, required String assetPath}) {
     Navigator.of(context).push(
@@ -56,112 +59,169 @@ class _AdministrationScreenState extends State<AdministrationScreen> {
     }
   }
 
+  Future<void> _confirmAndDeleteStoredData(BuildContext context) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('Delete saved data?'),
+        content: const Text('This will delete all locally saved data, including the last scanned QR text and the selected tab.'),
+        actions: [
+          TextButton(onPressed: () => Navigator.of(dialogContext).pop(false), child: const Text('Cancel')),
+          FilledButton.icon(
+            onPressed: () => Navigator.of(dialogContext).pop(true),
+            icon: const Icon(Icons.delete_forever_outlined),
+            label: const Text('Delete'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed != true || !context.mounted) {
+      return;
+    }
+
+    final preferences = await SharedPreferences.getInstance();
+    await preferences.clear();
+
+    if (!context.mounted) {
+      return;
+    }
+
+    setState(() {
+      _hasDeletedStoredData = true;
+    });
+
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(const SnackBar(content: Text('Saved data deleted.')));
+  }
+
+  void _closeAdministration() {
+    Navigator.of(context).pop(_hasDeletedStoredData);
+  }
+
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: const Text('Info')),
-      body: SafeArea(
-        child: ListView(
-          padding: const EdgeInsets.all(16),
-          children: [
-            _AdministrationCard(
-              title: 'Support the App',
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                spacing: 8,
-                children: [
-                  const Text('Maintaining and improving this app takes a lot of free time. Any support is appreciated.'),
-                  const SizedBox(height: 2),
-                  TextButton.icon(
-                    onPressed: () => _openLink(context, _buyMeACoffeeUri),
-                    icon: const Icon(Icons.local_cafe_outlined),
-                    label: const Text('Buy me a coffee'),
-                  ),
-                  TextButton.icon(
-                    onPressed: () => _openLink(context, _playstoreUri),
-                    icon: const Icon(Icons.rate_review_outlined),
-                    label: const Text('Rate/Feedback in Google Play'),
-                  ),
-                  TextButton.icon(
-                    onPressed: () => _openLink(context, _feedbackEmailUri),
-                    icon: const Icon(Icons.mail_outline),
-                    label: const Text('Send feedback by email'),
-                  ),
-                  TextButton.icon(
-                    onPressed: () => _openLink(context, _githubIssueUri),
-                    icon: const Icon(Icons.bug_report_outlined),
-                    label: const Text('Report a bug on GitHub'),
-                  ),
-                ],
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, result) {
+        if (!didPop) {
+          _closeAdministration();
+        }
+      },
+      child: Scaffold(
+        appBar: AppBar(
+          title: const Text('Info'),
+          leading: BackButton(onPressed: _closeAdministration),
+        ),
+        body: SafeArea(
+          child: ListView(
+            padding: const EdgeInsets.all(16),
+            children: [
+              _AdministrationCard(
+                title: 'Support the App',
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  spacing: 8,
+                  children: [
+                    const Text('Maintaining and improving this app takes a lot of free time. Any support is appreciated.'),
+                    const SizedBox(height: 2),
+                    TextButton.icon(
+                      onPressed: () => _openLink(context, _buyMeACoffeeUri),
+                      icon: const Icon(Icons.local_cafe_outlined),
+                      label: const Text('Buy me a coffee'),
+                    ),
+                    TextButton.icon(
+                      onPressed: () => _openLink(context, _playstoreUri),
+                      icon: const Icon(Icons.rate_review_outlined),
+                      label: const Text('Rate/Feedback in Google Play'),
+                    ),
+                    TextButton.icon(
+                      onPressed: () => _openLink(context, _feedbackEmailUri),
+                      icon: const Icon(Icons.mail_outline),
+                      label: const Text('Send feedback by email'),
+                    ),
+                    TextButton.icon(
+                      onPressed: () => _openLink(context, _githubIssueUri),
+                      icon: const Icon(Icons.bug_report_outlined),
+                      label: const Text('Report a bug on GitHub'),
+                    ),
+                  ],
+                ),
               ),
-            ),
-            const SizedBox(height: 16),
-            _AdministrationCard(
-              title: _appName,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text('Little Detective is a simple app with QR scanner and compass for kids.'),
-                  const SizedBox(height: 12),
-                  Wrap(
-                    spacing: 8,
-                    runSpacing: 8,
-                    children: [
-                      OutlinedButton.icon(onPressed: () => _showVersionDialog(context), icon: const Icon(Icons.info_outline), label: const Text('Version')),
-                      OutlinedButton.icon(
-                        onPressed: () => _openInfoDocument(context, title: 'Legal Notice', assetPath: _legalNoticeAsset),
-                        icon: const Icon(Icons.gavel_outlined),
-                        label: const Text('Legal Notice'),
-                      ),
-                      OutlinedButton.icon(
-                        onPressed: () => _openInfoDocument(context, title: 'Privacy Policy', assetPath: _privacyPolicyAsset),
-                        icon: const Icon(Icons.privacy_tip_outlined),
-                        label: const Text('Privacy Policy'),
-                      ),
-                      OutlinedButton.icon(
-                        onPressed: () => _openInfoDocument(context, title: 'Disclaimer', assetPath: _disclaimerAsset),
-                        icon: const Icon(Icons.warning_amber_outlined),
-                        label: const Text('Disclaimer'),
-                      ),
-                      OutlinedButton.icon(
-                        onPressed: () => _openInfoDocument(context, title: 'EULA', assetPath: _eulaAsset),
-                        icon: const Icon(Icons.description_outlined),
-                        label: const Text('EULA'),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 12),
-                  Wrap(
-                    spacing: 8,
-                    runSpacing: 8,
-                    children: [
-                      OutlinedButton.icon(
-                        onPressed: () => _openLink(context, _githubUri),
-                        icon: const Icon(Icons.open_in_new),
-                        label: const Text('Little Detective on GitHub'),
-                      ),
-                      OutlinedButton.icon(
-                        onPressed: () => _openLink(context, _exploratiaUri),
-                        icon: const Icon(Icons.language),
-                        label: const Text('Exploratia'),
-                      ),
-                      OutlinedButton.icon(
-                        onPressed: () => _openLink(context, _exploratiaLittleDetectiveUri),
-                        icon: const Icon(Icons.language),
-                        label: const Text('Little Detective on Exploratia'),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 12),
-                  const Divider(height: 1),
-                  const SizedBox(height: 12),
-                  Text('${DateTime.now().year} \u00A9 Christian Adler'),
-                ],
+              const SizedBox(height: 16),
+              _AdministrationCard(
+                title: _appName,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text('Little Detective is a simple app with QR scanner and compass for kids.'),
+                    const SizedBox(height: 12),
+                    Wrap(
+                      spacing: 8,
+                      runSpacing: 8,
+                      children: [
+                        OutlinedButton.icon(onPressed: () => _showVersionDialog(context), icon: const Icon(Icons.info_outline), label: const Text('Version')),
+                        OutlinedButton.icon(
+                          onPressed: () => _openInfoDocument(context, title: 'Legal Notice', assetPath: _legalNoticeAsset),
+                          icon: const Icon(Icons.gavel_outlined),
+                          label: const Text('Legal Notice'),
+                        ),
+                        OutlinedButton.icon(
+                          onPressed: () => _openInfoDocument(context, title: 'Privacy Policy', assetPath: _privacyPolicyAsset),
+                          icon: const Icon(Icons.privacy_tip_outlined),
+                          label: const Text('Privacy Policy'),
+                        ),
+                        OutlinedButton.icon(
+                          onPressed: () => _openInfoDocument(context, title: 'Disclaimer', assetPath: _disclaimerAsset),
+                          icon: const Icon(Icons.warning_amber_outlined),
+                          label: const Text('Disclaimer'),
+                        ),
+                        OutlinedButton.icon(
+                          onPressed: () => _openInfoDocument(context, title: 'EULA', assetPath: _eulaAsset),
+                          icon: const Icon(Icons.description_outlined),
+                          label: const Text('EULA'),
+                        ),
+                        OutlinedButton.icon(
+                          onPressed: () => _confirmAndDeleteStoredData(context),
+                          icon: const Icon(Icons.delete_forever_outlined),
+                          label: const Text('Delete saved data'),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 12),
+                    Wrap(
+                      spacing: 8,
+                      runSpacing: 8,
+                      children: [
+                        OutlinedButton.icon(
+                          onPressed: () => _openLink(context, _githubUri),
+                          icon: const Icon(Icons.open_in_new),
+                          label: const Text('Little Detective on GitHub'),
+                        ),
+                        OutlinedButton.icon(
+                          onPressed: () => _openLink(context, _exploratiaUri),
+                          icon: const Icon(Icons.language),
+                          label: const Text('Exploratia'),
+                        ),
+                        OutlinedButton.icon(
+                          onPressed: () => _openLink(context, _exploratiaLittleDetectiveUri),
+                          icon: const Icon(Icons.language),
+                          label: const Text('Little Detective on Exploratia'),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 12),
+                    const Divider(height: 1),
+                    const SizedBox(height: 12),
+                    Text('${DateTime.now().year} \u00A9 Christian Adler'),
+                  ],
+                ),
               ),
-            ),
-            const SizedBox(height: 24),
-            Center(child: Image.asset('assets/app_icon.png', width: 96, height: 96, excludeFromSemantics: true)),
-          ],
+              const SizedBox(height: 24),
+              Center(child: Image.asset('assets/app_icon.png', width: 96, height: 96, excludeFromSemantics: true)),
+            ],
+          ),
         ),
       ),
     );

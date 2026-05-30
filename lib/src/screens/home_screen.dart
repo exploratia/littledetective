@@ -10,7 +10,7 @@ import '../features/qr/qr_view.dart';
 import 'administration_screen.dart';
 import 'app_info_screen.dart';
 
-enum AppTab { qr, compass, text }
+enum AppTab { qr, text, compass, info }
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -22,23 +22,30 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   static const _storedQrTextKey = 'stored_qr_text';
   static const _storedVersionKey = 'stored_app_version';
+  static const _storedTabKey = 'stored_app_tab';
   static const _exitHintDuration = Duration(seconds: 2);
 
-  AppTab _selectedTab = AppTab.qr;
+  AppTab _selectedTab = AppTab.info;
   String? _scannedText;
+  String? _currentVersion;
   SharedPreferences? _preferences;
+  bool _isStateLoaded = false;
+  bool _isInfoTabVisible = false;
   bool _isExitArmed = false;
   Timer? _exitArmResetTimer;
+  late final ScrollController _infoScrollController;
 
   @override
   void initState() {
     super.initState();
+    _infoScrollController = ScrollController();
     _loadPersistedState();
   }
 
   @override
   void dispose() {
     _exitArmResetTimer?.cancel();
+    _infoScrollController.dispose();
     super.dispose();
   }
 
@@ -48,8 +55,9 @@ class _HomeScreenState extends State<HomeScreen> {
     final currentVersion = packageInfo.buildNumber.trim().isEmpty ? packageInfo.version : '${packageInfo.version}+${packageInfo.buildNumber}';
     final storedVersion = preferences.getString(_storedVersionKey);
     final shouldShowInfoView = storedVersion == null;
+    final storedTab = _restoreTab(preferences.getString(_storedTabKey));
 
-    if (storedVersion != currentVersion) {
+    if (!shouldShowInfoView && storedVersion != currentVersion) {
       await preferences.setString(_storedVersionKey, currentVersion);
     }
 
@@ -59,16 +67,16 @@ class _HomeScreenState extends State<HomeScreen> {
 
     setState(() {
       _preferences = preferences;
+      _currentVersion = currentVersion;
       _scannedText = preferences.getString(_storedQrTextKey);
+      _selectedTab = shouldShowInfoView ? AppTab.info : storedTab;
+      _isInfoTabVisible = shouldShowInfoView;
+      _isStateLoaded = true;
     });
+  }
 
-    if (shouldShowInfoView) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (mounted) {
-          _openInfoView();
-        }
-      });
-    }
+  AppTab _restoreTab(String? value) {
+    return AppTab.values.where((tab) => tab != AppTab.info && tab.name == value).firstOrNull ?? AppTab.qr;
   }
 
   Future<void> _storeScannedText(String value) async {
@@ -83,6 +91,39 @@ class _HomeScreenState extends State<HomeScreen> {
       _isExitArmed = false;
     });
     _exitArmResetTimer?.cancel();
+    unawaited(_storeSelectedTab(tab));
+  }
+
+  Future<void> _storeSelectedTab(AppTab tab) async {
+    if (tab == AppTab.info) {
+      return;
+    }
+
+    final preferences = _preferences ?? await SharedPreferences.getInstance();
+    _preferences = preferences;
+    await preferences.setString(_storedTabKey, tab.name);
+  }
+
+  Future<void> _finishFirstStartInfoTab(AppTab nextTab) async {
+    final preferences = _preferences ?? await SharedPreferences.getInstance();
+    final currentVersion = _currentVersion;
+    _preferences = preferences;
+
+    if (currentVersion != null) {
+      await preferences.setString(_storedVersionKey, currentVersion);
+    }
+
+    if (!mounted) {
+      return;
+    }
+
+    setState(() {
+      _selectedTab = nextTab;
+      _isInfoTabVisible = false;
+      _isExitArmed = false;
+    });
+    _exitArmResetTimer?.cancel();
+    unawaited(_storeSelectedTab(nextTab));
   }
 
   void _handleBarcode(BarcodeCapture capture) {
@@ -99,18 +140,33 @@ class _HomeScreenState extends State<HomeScreen> {
     });
     _exitArmResetTimer?.cancel();
     unawaited(_storeScannedText(value));
+    unawaited(_storeSelectedTab(AppTab.text));
   }
 
-  void _openAdministration() {
-    Navigator.of(context).push(MaterialPageRoute<void>(builder: (_) => const AdministrationScreen()));
+  Future<void> _openAdministration() async {
+    final didDeleteStoredData = await Navigator.of(context).push<bool>(MaterialPageRoute<bool>(builder: (_) => const AdministrationScreen()));
+
+    if (didDeleteStoredData == true) {
+      await _loadPersistedState();
+    }
   }
 
   void _openInfoView() {
+    if (_isInfoTabVisible) {
+      _selectTab(AppTab.info);
+      return;
+    }
+
     Navigator.of(context).push(MaterialPageRoute<void>(builder: (_) => const AppInfoScreen()));
   }
 
   void _handleBackNavigation() {
-    if (_selectedTab != AppTab.qr) {
+    if (_selectedTab == AppTab.info && _isInfoTabVisible) {
+      unawaited(_finishFirstStartInfoTab(AppTab.qr));
+      return;
+    }
+
+    if (_selectedTab != AppTab.qr && _isStateLoaded) {
       _selectTab(AppTab.qr);
       return;
     }
@@ -140,14 +196,10 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final selectedIndex = switch (_selectedTab) {
-      AppTab.qr => 0,
-      AppTab.text => 1,
-      AppTab.compass => 2,
-    };
+    final selectedIndex = _selectedIndex;
 
     return PopScope(
-      canPop: _selectedTab == AppTab.qr && _isExitArmed,
+      canPop: _selectedTab == AppTab.qr && _isExitArmed && _isStateLoaded,
       onPopInvokedWithResult: (didPop, result) {
         if (!didPop) {
           _handleBackNavigation();
@@ -173,14 +225,22 @@ class _HomeScreenState extends State<HomeScreen> {
             padding: const EdgeInsets.all(16),
             child: AnimatedSwitcher(
               duration: const Duration(milliseconds: 250),
-              child: switch (_selectedTab) {
-                AppTab.qr => QrView(key: const ValueKey('qr-view'), onDetect: _handleBarcode),
-                AppTab.text =>
-                  _scannedText == null
-                      ? const _EmptyTextView(key: ValueKey('empty-text-view'))
-                      : ScannedTextView(key: const ValueKey('scanned-text-view'), text: _scannedText!),
-                AppTab.compass => const CompassView(key: ValueKey('compass-view')),
-              },
+              child: _isStateLoaded
+                  ? switch (_selectedTab) {
+                      AppTab.qr => QrView(key: const ValueKey('qr-view'), onDetect: _handleBarcode),
+                      AppTab.text =>
+                        _scannedText == null
+                            ? const _EmptyTextView(key: ValueKey('empty-text-view'))
+                            : ScannedTextView(key: const ValueKey('scanned-text-view'), text: _scannedText!),
+                      AppTab.compass => const CompassView(key: ValueKey('compass-view')),
+                      AppTab.info when _isInfoTabVisible => AppInfoContent(
+                        key: const ValueKey('info-view'),
+                        scrollController: _infoScrollController,
+                        onClose: () => unawaited(_finishFirstStartInfoTab(AppTab.qr)),
+                      ),
+                      AppTab.info => QrView(key: const ValueKey('qr-view'), onDetect: _handleBarcode),
+                    }
+                  : const Center(key: ValueKey('loading-view'), child: CircularProgressIndicator()),
             ),
           ),
         ),
@@ -188,20 +248,39 @@ class _HomeScreenState extends State<HomeScreen> {
           selectedIndex: selectedIndex,
           labelBehavior: NavigationDestinationLabelBehavior.alwaysHide,
           onDestinationSelected: (index) {
-            _selectTab(switch (index) {
+            final tab = switch (index) {
               0 => AppTab.qr,
               1 => AppTab.text,
-              _ => AppTab.compass,
-            });
+              2 => AppTab.compass,
+              _ => AppTab.info,
+            };
+
+            if (_isInfoTabVisible && tab != AppTab.info) {
+              unawaited(_finishFirstStartInfoTab(tab));
+              return;
+            }
+
+            _selectTab(tab);
           },
-          destinations: const [
-            NavigationDestination(icon: Icon(Icons.qr_code_scanner, size: 30), selectedIcon: Icon(Icons.qr_code_2, size: 34), label: 'QR-Code'),
-            NavigationDestination(icon: Icon(Icons.text_snippet_outlined, size: 30), selectedIcon: Icon(Icons.text_snippet, size: 34), label: 'Text'),
-            NavigationDestination(icon: Icon(Icons.explore_outlined, size: 30), selectedIcon: Icon(Icons.explore, size: 34), label: 'Compass'),
+          destinations: [
+            const NavigationDestination(icon: Icon(Icons.qr_code_scanner, size: 30), selectedIcon: Icon(Icons.qr_code_2, size: 34), label: 'QR-Code'),
+            const NavigationDestination(icon: Icon(Icons.text_snippet_outlined, size: 30), selectedIcon: Icon(Icons.text_snippet, size: 34), label: 'Text'),
+            const NavigationDestination(icon: Icon(Icons.explore_outlined, size: 30), selectedIcon: Icon(Icons.explore, size: 34), label: 'Compass'),
+            if (_isInfoTabVisible)
+              const NavigationDestination(icon: Icon(Icons.help_outline, size: 30), selectedIcon: Icon(Icons.help, size: 34), label: 'How to'),
           ],
         ),
       ),
     );
+  }
+
+  int get _selectedIndex {
+    return switch (_selectedTab) {
+      AppTab.qr => 0,
+      AppTab.text => 1,
+      AppTab.compass => 2,
+      AppTab.info => _isInfoTabVisible ? 3 : 0,
+    };
   }
 }
 
