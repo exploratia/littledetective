@@ -44,7 +44,7 @@ class _QrViewState extends State<QrView> with WidgetsBindingObserver {
   Future<void> _checkCameraPermission() async {
     var status = await Permission.camera.status;
 
-    if (status.isDenied) {
+    if (!status.isGranted && !status.isLimited) {
       status = await Permission.camera.request();
     }
 

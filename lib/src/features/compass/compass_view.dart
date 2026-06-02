@@ -70,7 +70,7 @@ class _CompassViewState extends State<CompassView> with WidgetsBindingObserver {
     }
 
     var permission = await Permission.locationWhenInUse.status;
-    if (permission.isDenied) {
+    if (!permission.isGranted && !permission.isLimited) {
       permission = await Permission.locationWhenInUse.request();
     }
 
