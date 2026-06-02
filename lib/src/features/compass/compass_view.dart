@@ -3,6 +3,7 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter_compass/flutter_compass.dart';
 import 'package:geolocator/geolocator.dart';
+import 'package:permission_handler/permission_handler.dart';
 
 class CompassView extends StatefulWidget {
   const CompassView({super.key});
@@ -11,7 +12,7 @@ class CompassView extends StatefulWidget {
   State<CompassView> createState() => _CompassViewState();
 }
 
-class _CompassViewState extends State<CompassView> {
+class _CompassViewState extends State<CompassView> with WidgetsBindingObserver {
   final Stream<Position> _positionStream = Geolocator.getPositionStream(
     locationSettings: const LocationSettings(accuracy: LocationAccuracy.bestForNavigation, distanceFilter: 0),
   );
@@ -19,11 +20,28 @@ class _CompassViewState extends State<CompassView> {
   bool _locationInitialized = false;
   bool _locationReady = false;
   String? _locationError;
+  bool _settingsOpened = false;
+  bool _dialogOpen = false;
 
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     _initializeLocation();
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed && _settingsOpened) {
+      _settingsOpened = false;
+      _initializeLocation();
+    }
   }
 
   Future<void> _initializeLocation() async {
@@ -36,28 +54,70 @@ class _CompassViewState extends State<CompassView> {
       _locationReady = locationState.errorMessage == null;
       _locationError = locationState.errorMessage;
     });
+
+    if (locationState.showSettingsDialog) {
+      await _showSettingsDialog(
+        title: 'Location Permission Needed',
+        message: 'Please allow location access in settings.',
+      );
+    }
   }
 
   Future<_LocationSetupResult> _prepareLocation() async {
     final isEnabled = await Geolocator.isLocationServiceEnabled();
     if (!isEnabled) {
-      return const _LocationSetupResult(errorMessage: 'Location services are disabled.');
+      return const _LocationSetupResult(errorMessage: 'Location service is off.');
     }
 
-    var permission = await Geolocator.checkPermission();
-    if (permission == LocationPermission.denied) {
-      permission = await Geolocator.requestPermission();
+    var permission = await Permission.locationWhenInUse.status;
+    if (permission.isDenied) {
+      permission = await Permission.locationWhenInUse.request();
     }
 
-    if (permission == LocationPermission.denied) {
-      return const _LocationSetupResult(errorMessage: 'Location permission denied.');
+    if (permission.isGranted || permission.isLimited) {
+      return const _LocationSetupResult();
     }
 
-    if (permission == LocationPermission.deniedForever) {
-      return const _LocationSetupResult(errorMessage: 'Location permission permanently denied.');
+    if (permission.isPermanentlyDenied) {
+      return const _LocationSetupResult(errorMessage: 'Location access is blocked.', showSettingsDialog: true);
     }
 
-    return const _LocationSetupResult();
+    return const _LocationSetupResult(errorMessage: 'Location permission denied.');
+  }
+
+  Future<void> _showSettingsDialog({
+    required String title,
+    required String message,
+  }) async {
+    if (!mounted || _dialogOpen) {
+      return;
+    }
+
+    _dialogOpen = true;
+    await showDialog<void>(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: Text(title),
+          content: Text(message),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text('Cancel'),
+            ),
+            FilledButton(
+              onPressed: () {
+                _settingsOpened = true;
+                openAppSettings();
+                Navigator.of(context).pop();
+              },
+              child: const Text('Open Settings'),
+            ),
+          ],
+        );
+      },
+    );
+    _dialogOpen = false;
   }
 
   @override
@@ -98,9 +158,10 @@ class _CompassViewState extends State<CompassView> {
 }
 
 class _LocationSetupResult {
-  const _LocationSetupResult({this.errorMessage});
+  const _LocationSetupResult({this.errorMessage, this.showSettingsDialog = false});
 
   final String? errorMessage;
+  final bool showSettingsDialog;
 }
 
 class CompassRose extends StatelessWidget {
